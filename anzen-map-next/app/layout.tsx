@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   // 例: <meta name="google-site-verification" content="AbCdEfGhIj123456" />
   //      → 'AbCdEfGhIj123456' の部分だけ貼り付けます
   verification: {
-    google: 'ここにSearch Consoleのcontent値を貼り付け',
+    google: 'VF_kUvikAVgZCjQbJQy6omWOqd7AAdTxZ7N4BmTMJ7Y',
   },
   openGraph: {
     siteName: '地域安全マップ',
