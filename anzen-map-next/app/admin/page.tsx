@@ -5,18 +5,44 @@ import type { Contact, Column, Ad } from '@/types'
 
 type Tab = 'contacts' | 'columns' | 'ads'
 
-export default function AdminPage() {
-  const [tab, setTab] = useState<Tab>('contacts')
-  const [contacts, setContacts] = useState<Contact[]>([])
-  const [columns, setColumns]   = useState<Column[]>([])
-  const [ads, setAds]           = useState<Ad[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [newCol, setNewCol]     = useState({ slug:'', title:'', description:'', content:'', tags:'', status:'draft' as 'draft'|'published' })
-  const [newAd, setNewAd]       = useState({ name:'', position:'header' as Ad['position'], type:'adsense' as Ad['type'], code:'', page:'all', priority:0 })
-  const [saving, setSaving]     = useState(false)
-  const [msg, setMsg]           = useState('')
+// 管理者認証情報（環境変数から取得、なければデフォルト値）
+const ADMIN_ID  = process.env.NEXT_PUBLIC_ADMIN_ID       || 'admin'
+const ADMIN_PW  = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'anzen-map-2024'
 
-  useEffect(() => { fetchAll() }, [tab])
+export default function AdminPage() {
+  const [authed,   setAuthed]   = useState(false)
+  const [loginId,  setLoginId]  = useState('')
+  const [loginPw,  setLoginPw]  = useState('')
+  const [loginErr, setLoginErr] = useState('')
+
+  const [tab,      setTab]      = useState<Tab>('contacts')
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [columns,  setColumns]  = useState<Column[]>([])
+  const [ads,      setAds]      = useState<Ad[]>([])
+  const [loading,  setLoading]  = useState(false)
+  const [newCol,   setNewCol]   = useState({ slug:'', title:'', description:'', content:'', tags:'', status:'draft' as 'draft'|'published' })
+  const [newAd,    setNewAd]    = useState({ name:'', position:'header' as Ad['position'], type:'adsense' as Ad['type'], code:'', page:'all', priority:0 })
+  const [saving,   setSaving]   = useState(false)
+  const [msg,      setMsg]      = useState('')
+
+  // ─── ログイン処理 ───────────────────────────────────────
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (loginId === ADMIN_ID && loginPw === ADMIN_PW) {
+      setAuthed(true)
+      setLoginErr('')
+      sessionStorage.setItem('admin_authed', '1')
+    } else {
+      setLoginErr('IDまたはパスワードが違います')
+    }
+  }
+
+  // セッション維持（ページリロード対応）
+  useEffect(() => {
+    if (sessionStorage.getItem('admin_authed') === '1') setAuthed(true)
+  }, [])
+
+  useEffect(() => { if (authed) fetchAll() }, [tab, authed])
 
   async function fetchAll() {
     setLoading(true)
@@ -69,6 +95,63 @@ export default function AdminPage() {
     setColumns(cs => cs.filter(c => c.id !== id))
   }
 
+  // ─── ログイン画面 ─────────────────────────────────────
+  if (!authed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="bg-white rounded-2xl shadow border border-gray-200 p-8 w-full max-w-sm">
+          <div className="text-center mb-6">
+            <div className="text-3xl mb-2">🔒</div>
+            <h1 className="text-lg font-bold text-gray-900">管理画面</h1>
+            <p className="text-sm text-gray-500 mt-1">地域安全マップ</p>
+          </div>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                管理者ID
+              </label>
+              <input
+                type="text"
+                required
+                className="input"
+                placeholder="admin"
+                value={loginId}
+                onChange={e => setLoginId(e.target.value)}
+                autoComplete="username"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                パスワード
+              </label>
+              <input
+                type="password"
+                required
+                className="input"
+                placeholder="••••••••"
+                value={loginPw}
+                onChange={e => setLoginPw(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+            {loginErr && (
+              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+                {loginErr}
+              </div>
+            )}
+            <button type="submit" className="btn-primary w-full">
+              ログイン
+            </button>
+          </form>
+          <p className="text-xs text-gray-400 text-center mt-4">
+            IDとパスワードはVercelの環境変数で設定してください
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // ─── 管理画面本体 ─────────────────────────────────────
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: 'contacts', label: '問い合わせ', count: contacts.filter(c => c.status === 'unread').length || undefined },
     { key: 'columns',  label: 'コラム管理' },
@@ -77,9 +160,16 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-xl font-bold text-gray-900 mb-6">管理画面</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold text-gray-900">管理画面</h1>
+        <button
+          onClick={() => { sessionStorage.removeItem('admin_authed'); setAuthed(false) }}
+          className="text-sm text-gray-500 hover:text-red-500 transition border border-gray-200 px-3 py-1.5 rounded-lg"
+        >
+          ログアウト
+        </button>
+      </div>
 
-      {/* タブ */}
       <div className="flex gap-2 mb-6 border-b border-gray-200 pb-2">
         {tabs.map(t => (
           <button
@@ -107,7 +197,7 @@ export default function AdminPage() {
         <div className="text-center py-12 text-gray-400">読み込み中…</div>
       ) : (
         <>
-          {/* ─── 問い合わせ ─── */}
+          {/* 問い合わせ */}
           {tab === 'contacts' && (
             <div className="space-y-3">
               {contacts.length === 0 && <p className="text-gray-400 text-sm">問い合わせはありません</p>}
@@ -129,23 +219,18 @@ export default function AdminPage() {
                   <p className="text-sm text-gray-600 whitespace-pre-wrap">{c.message}</p>
                   <div className="flex gap-2 mt-3">
                     {c.status === 'unread' && (
-                      <button onClick={() => markRead(c.id)} className="text-xs btn-secondary py-1 px-3">
-                        既読にする
-                      </button>
+                      <button onClick={() => markRead(c.id)} className="text-xs btn-secondary py-1 px-3">既読にする</button>
                     )}
-                    <a href={`mailto:${c.email}?subject=Re: ${c.subject}`} className="text-xs btn-primary py-1 px-3">
-                      返信する
-                    </a>
+                    <a href={`mailto:${c.email}?subject=Re: ${c.subject}`} className="text-xs btn-primary py-1 px-3">返信する</a>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* ─── コラム管理 ─── */}
+          {/* コラム管理 */}
           {tab === 'columns' && (
             <div>
-              {/* 新規作成フォーム */}
               <div className="card mb-6">
                 <h2 className="font-bold text-sm text-gray-800 mb-4">新規記事を作成</h2>
                 <div className="space-y-3">
@@ -183,8 +268,6 @@ export default function AdminPage() {
                   </button>
                 </div>
               </div>
-
-              {/* 記事一覧 */}
               <div className="space-y-2">
                 {columns.map(c => (
                   <div key={c.id} className="card flex items-center justify-between gap-4">
@@ -205,10 +288,9 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ─── 広告枠管理 ─── */}
+          {/* 広告枠管理 */}
           {tab === 'ads' && (
             <div>
-              {/* 新規広告フォーム */}
               <div className="card mb-6">
                 <h2 className="font-bold text-sm text-gray-800 mb-4">新規広告枠を追加</h2>
                 <div className="space-y-3">
@@ -235,21 +317,19 @@ export default function AdminPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-xs text-gray-500 mb-1">表示ページ（all or /columns 等）</label>
+                      <label className="block text-xs text-gray-500 mb-1">表示ページ</label>
                       <input className="input text-sm" placeholder="all" value={newAd.page} onChange={e => setNewAd({...newAd, page: e.target.value})} />
                     </div>
                   </div>
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">広告コード（HTMLタグ）</label>
-                    <textarea className="input text-sm font-mono resize-none" rows={5} placeholder="<script>/* AdSense or アフィリエイトタグ */</script>" value={newAd.code} onChange={e => setNewAd({...newAd, code: e.target.value})} />
+                    <textarea className="input text-sm font-mono resize-none" rows={5} placeholder="<script>/* AdSenseタグ */</script>" value={newAd.code} onChange={e => setNewAd({...newAd, code: e.target.value})} />
                   </div>
                   <button onClick={saveAd} disabled={saving} className="btn-primary text-sm">
                     {saving ? '保存中…' : '広告枠を追加'}
                   </button>
                 </div>
               </div>
-
-              {/* 広告一覧 */}
               <div className="space-y-2">
                 {ads.map(a => (
                   <div key={a.id} className="card flex items-center justify-between gap-4">
@@ -263,9 +343,7 @@ export default function AdminPage() {
                     <button
                       onClick={() => toggleAd(a.id, a.is_active)}
                       className={`text-xs px-3 py-1 rounded-lg border transition ${
-                        a.is_active
-                          ? 'border-red-200 text-red-600 hover:bg-red-50'
-                          : 'border-green-200 text-green-600 hover:bg-green-50'
+                        a.is_active ? 'border-red-200 text-red-600 hover:bg-red-50' : 'border-green-200 text-green-600 hover:bg-green-50'
                       }`}
                     >
                       {a.is_active ? '停止する' : '有効にする'}
