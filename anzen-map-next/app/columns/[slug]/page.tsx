@@ -40,10 +40,11 @@ export default async function ColumnDetailPage({ params }: Props) {
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="grid md:grid-cols-3 gap-8">
+
         {/* 本文 */}
         <article className="md:col-span-2">
           {/* パンくず */}
-          <nav className="text-xs text-gray-400 mb-4 flex gap-1 items-center">
+          <nav className="text-xs text-gray-400 mb-4 flex gap-1 items-center flex-wrap">
             <Link href="/" className="hover:text-blue-600">ホーム</Link>
             <span>/</span>
             <Link href="/columns" className="hover:text-blue-600">コラム</Link>
@@ -54,12 +55,14 @@ export default async function ColumnDetailPage({ params }: Props) {
           {/* タグ */}
           <div className="flex gap-1.5 mb-3 flex-wrap">
             {col.tags?.map(tag => (
-              <span key={tag} className="badge bg-blue-50 text-blue-700">{tag}</span>
+              <span key={tag} className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                {tag}
+              </span>
             ))}
           </div>
 
           {/* タイトル */}
-          <h1 className="text-xl font-bold text-gray-900 leading-snug mb-3">{col.title}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 leading-snug mb-3">{col.title}</h1>
 
           {/* メタ情報 */}
           {col.published_at && (
@@ -78,17 +81,8 @@ export default async function ColumnDetailPage({ params }: Props) {
             />
           )}
 
-          {/* 本文 */}
-          <div
-            className="prose prose-sm prose-blue max-w-none
-              prose-headings:font-bold prose-headings:text-gray-900
-              prose-h2:text-lg prose-h2:mt-8 prose-h2:mb-3 prose-h2:pb-2 prose-h2:border-b prose-h2:border-gray-200
-              prose-h3:text-base prose-h3:mt-6 prose-h3:mb-2
-              prose-p:text-gray-700 prose-p:leading-relaxed
-              prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline
-              prose-li:text-gray-700"
-            dangerouslySetInnerHTML={{ __html: col.content }}
-          />
+          {/* 本文 — prose クラスでHTMLを整形 */}
+          <div className="prose prose-blue max-w-none" dangerouslySetInnerHTML={{ __html: col.content }} />
 
           {/* 記事内広告 */}
           <AdSlot position="inline" page="/columns" className="my-8" />
@@ -100,9 +94,8 @@ export default async function ColumnDetailPage({ params }: Props) {
             <Link href="/disclaimer" className="ml-1 text-blue-500 underline">免責事項</Link>
           </div>
 
-          {/* 戻るボタン */}
           <div className="mt-6">
-            <Link href="/columns" className="btn-secondary text-sm">
+            <Link href="/columns" className="inline-flex items-center gap-1 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition">
               ← コラム一覧に戻る
             </Link>
           </div>
@@ -111,10 +104,10 @@ export default async function ColumnDetailPage({ params }: Props) {
         {/* サイドバー */}
         <aside className="space-y-4">
           <AdSlot position="sidebar" className="rounded-xl overflow-hidden" />
-          <div className="card">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4">
             <h3 className="font-bold text-sm text-gray-800 mb-3">地域を検索する</h3>
             <p className="text-xs text-gray-500 mb-3">引越し先の治安・家賃を無料で確認</p>
-            <Link href="/" className="btn-primary text-xs w-full text-center block">
+            <Link href="/" className="block w-full text-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">
               ダッシュボードを開く
             </Link>
           </div>
