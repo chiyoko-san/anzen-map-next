@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   description: '引越し先の治安・家賃・生活環境に関するコラムをまとめています。東京・大阪・名古屋・福岡・札幌の最新データをもとに解説。',
 }
 
-export const revalidate = 3600 // 1時間キャッシュ
+export const revalidate = 60 // 1時間キャッシュ
 
 async function getColumns(): Promise<Column[]> {
   const { data } = await supabase

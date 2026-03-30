@@ -111,7 +111,8 @@ export default function AdminPage() {
   async function saveColumn() {
     setSaving(true)
     const tags = col.tags.split(',').map(t => t.trim()).filter(Boolean)
-    const payload = {
+    // 編集時は published_at を上書きしない（新規公開時のみセット）
+    const basePayload = {
       slug:        col.slug,
       title:       col.title,
       description: col.description,
@@ -119,17 +120,17 @@ export default function AdminPage() {
       thumbnail:   col.thumbnail || null,
       tags,
       status:      col.status,
-      published_at: col.status === 'published' ? new Date().toISOString() : null,
     }
 
     let error
     if (editingId) {
-      // 更新
-      const res = await supabase.from('columns').update(payload).eq('id', editingId)
+      // 更新（published_at は変えない）
+      const res = await supabase.from('columns').update(basePayload).eq('id', editingId)
       error = res.error
       if (!error) { setMsg('記事を更新しました ✓'); cancelEdit(); fetchAll() }
     } else {
       // 新規
+      const payload = { ...basePayload, published_at: col.status === 'published' ? new Date().toISOString() : null }
       const res = await supabase.from('columns').insert(payload)
       error = res.error
       if (!error) { setMsg('記事を保存しました ✓'); setCol(EMPTY_COL); fetchAll() }

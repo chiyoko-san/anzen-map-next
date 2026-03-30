@@ -7,7 +7,7 @@ import AdSlot from '@/components/ui/AdSlot'
 
 type Props = { params: { slug: string } }
 
-export const revalidate = 3600
+export const revalidate = 60
 
 async function getColumn(slug: string): Promise<Column | null> {
   const { data } = await supabase
