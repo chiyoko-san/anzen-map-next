@@ -126,6 +126,8 @@ export default function Dashboard() {
     { key: 'crime',    label: '🚨 犯罪' },
     { key: 'rent',     label: '🏠 家賃' },
     { key: 'ranking',  label: '📋 ランキング' },
+    { key: 'hazard',   label: '🌊 ハザードマップ' },
+    { key: 'station',  label: '🚉 駅ごとの事件' },
   ]
 
   return (
@@ -208,14 +210,29 @@ export default function Dashboard() {
             <div>
               <h2 className="text-xl font-bold text-white">{selected.name}</h2>
               <p className="text-blue-200 text-xs mt-0.5">総人口 {selected.population.toLocaleString()}人 ／ {data?.cities[city].label}</p>
+              <p className="text-blue-300 text-xs mt-1">📅 データ基準：令和5年（2023年）／ 警視庁・各都道府県警察・総務省</p>
             </div>
             <div className="text-right">
-              <p className="text-blue-200 text-xs mb-0.5">総合治安スコア</p>
+              <p className="text-blue-200 text-xs mb-0.5">総合治安スコア（100点満点）</p>
               <p className="text-4xl font-bold text-white leading-none">{selected.safety_score}</p>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block ${GRADE_COLOR[GRADE(selected.safety_score ?? 0)]}`}>
                 {GRADE(selected.safety_score ?? 0)}ランク ー {GRADE_LABEL[GRADE(selected.safety_score ?? 0)]}
               </span>
             </div>
+          </div>
+          {/* スコア算出根拠の説明 */}
+          <div className="bg-blue-50 border-b border-blue-100 px-5 py-3">
+            <p className="text-xs text-blue-800 font-medium mb-1">📊 このスコアの算出方法</p>
+            <p className="text-xs text-blue-700 leading-relaxed">
+              犯罪発生率（人口1,000人あたり）・交通事故率・火災率・地域危険度ランクの4指標を組み合わせて100点満点で算出。
+              <span className="font-medium">スコアが高いほど安全</span>を意味します（令和5年・2023年データ）。
+            </p>
+            {selected.crime_per1000 > 20 && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2">
+                ⚠️ <span className="font-medium">{selected.name}は昼間人口が夜間人口より大幅に多いエリアです。</span>
+                犯罪発生率は住民登録人口をもとに算出するため実態より高く出る傾向があります。都心部への通勤・来街者が多い地域では、この点を考慮してご判断ください。
+              </p>
+            )}
           </div>
           <div className="bg-white p-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
@@ -279,7 +296,10 @@ export default function Dashboard() {
             <h2 className="font-bold text-gray-900">総合治安スコア（全区・市）</h2>
             <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">高い＝安全 / 100点満点</span>
           </div>
-          <p className="text-xs text-gray-500 mb-3">犯罪率・交通事故率・火災率・危険度を統合したスコア。単位：点</p>
+          <p className="text-xs text-gray-500 mb-3">
+            犯罪発生率（人口1,000人あたり）・交通事故率・火災率・地域危険度ランクを統合した独自スコア（100点満点・高いほど安全）。
+            <span className="text-gray-400">データ基準：令和5年（2023年）</span>
+          </p>
           <div style={{ position:'relative', width:'100%', height: `${wards.length * 28 + 60}px` }}>
             <canvas id="c-score"></canvas>
           </div>
@@ -343,6 +363,131 @@ export default function Dashboard() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* ─── ハザードマップタブ ─── */}
+      {tab === 'hazard' && (
+        <div className="space-y-4">
+          <div className="card">
+            <div className="flex items-start justify-between mb-3 flex-wrap gap-2">
+              <div>
+                <h2 className="font-bold text-gray-900 mb-1">🌊 ハザードマップ</h2>
+                <p className="text-xs text-gray-500">
+                  国土交通省「ハザードマップポータルサイト」より。洪水・土砂災害・津波・高潮などのリスクを地図上で確認できます。
+                </p>
+              </div>
+              <a
+                href="https://disaportal.gsi.go.jp/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 whitespace-nowrap"
+              >
+                別タブで開く ↗
+              </a>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3 text-xs text-amber-800">
+              ⚠️ 引越し前に必ず確認しましょう。洪水・土砂災害・津波・高潮のリスクエリアを地図上で把握できます。
+            </div>
+            <div className="rounded-xl overflow-hidden border border-gray-200" style={{height:'600px'}}>
+              <iframe
+                src="https://disaportal.gsi.go.jp/"
+                width="100%"
+                height="100%"
+                title="ハザードマップポータルサイト（国土交通省）"
+                loading="lazy"
+                style={{border:'none'}}
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              出典：国土交通省「ハザードマップポータルサイト」
+              <a href="https://disaportal.gsi.go.jp/" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 underline">
+                https://disaportal.gsi.go.jp/
+              </a>
+            </p>
+          </div>
+
+          <div className="card">
+            <h3 className="font-bold text-sm text-gray-800 mb-2">ハザードマップの見方</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                ['🌊', '洪水', '河川の氾濫による浸水リスク'],
+                ['⛰️', '土砂災害', '崖崩れ・土石流・地すべりのリスク'],
+                ['🌊', '津波', '地震による津波の浸水想定'],
+                ['🌊', '高潮', '台風・低気圧による海水の浸水リスク'],
+              ].map(([icon, title, desc]) => (
+                <div key={title} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <div className="text-xl mb-1">{icon}</div>
+                  <div className="text-xs font-bold text-gray-800 mb-0.5">{title}</div>
+                  <div className="text-xs text-gray-500">{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── 駅ごとの事件タブ ─── */}
+      {tab === 'station' && (
+        <div className="space-y-4">
+          <div className="card">
+            <div className="flex items-start justify-between mb-3 flex-wrap gap-2">
+              <div>
+                <h2 className="font-bold text-gray-900 mb-1">🚉 駅ごとの事件件数・街頭犯罪発生マップ</h2>
+                <p className="text-xs text-gray-500">
+                  警視庁「犯罪情報マップ」より。駅周辺・街頭での犯罪発生状況を地図上で確認できます。
+                </p>
+              </div>
+              <a
+                href="https://www.keishicho.metro.tokyo.lg.jp/smph/kurashi/higai/akusho/akusho.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50 whitespace-nowrap"
+              >
+                別タブで開く ↗
+              </a>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-3 text-xs text-blue-800">
+              ℹ️ 地図上で駅名・地域名を検索すると、その周辺の街頭犯罪（ひったくり・路上強盗・痴漢など）の発生状況を確認できます。
+            </div>
+            <div className="rounded-xl overflow-hidden border border-gray-200" style={{height:'600px'}}>
+              <iframe
+                src="https://www.keishicho.metro.tokyo.lg.jp/smph/kurashi/higai/akusho/akusho.html"
+                width="100%"
+                height="100%"
+                title="警視庁 犯罪情報マップ"
+                loading="lazy"
+                style={{border:'none'}}
+              />
+            </div>
+            <p className="text-xs text-gray-400 mt-2">
+              出典：警視庁「犯罪情報マップ」
+              <a href="https://www.keishicho.metro.tokyo.lg.jp/" target="_blank" rel="noopener noreferrer" className="ml-1 text-blue-500 underline">
+                https://www.keishicho.metro.tokyo.lg.jp/
+              </a>
+              ／ 東京都のデータのみ対応
+            </p>
+          </div>
+
+          <div className="card">
+            <h3 className="font-bold text-sm text-gray-800 mb-2">確認できる主な犯罪種別</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {[
+                ['👜', 'ひったくり', 'バッグ等の強奪'],
+                ['🚶', '路上強盗', '暴力を伴う強盗'],
+                ['👁️', '痴漢', '電車・駅周辺での被害'],
+                ['🔓', '空き巣', '留守宅への侵入盗'],
+                ['🚲', '自転車盗', '駅前駐輪場での盗難'],
+                ['📱', 'スリ', '混雑場所での窃盗'],
+              ].map(([icon, title, desc]) => (
+                <div key={title} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                  <div className="text-xl mb-1">{icon}</div>
+                  <div className="text-xs font-bold text-gray-800 mb-0.5">{title}</div>
+                  <div className="text-xs text-gray-500">{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
