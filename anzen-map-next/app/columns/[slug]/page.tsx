@@ -22,13 +22,20 @@ async function getColumn(slug: string): Promise<Column | null> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const col = await getColumn(params.slug)
   if (!col) return { title: '記事が見つかりません' }
+  
+  const ogImage = col.thumbnail || 'https://anzen-map.jp/og-default.png'
+  
   return {
     title: col.title,
     description: col.description,
     openGraph: {
       title: col.title,
       description: col.description,
-      images: col.thumbnail ? [col.thumbnail] : [],
+      images: [{ url: ogImage, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      images: [ogImage],
     },
   }
 }
