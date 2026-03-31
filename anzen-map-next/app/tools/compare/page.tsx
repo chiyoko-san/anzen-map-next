@@ -79,7 +79,15 @@ export default function ComparePage() {
     const q = [...queries]; q[idx] = ''; setQueries(q)
   }
 
-  const rows = [
+  type Row = {
+    label: string
+    key: keyof Ward
+    unit: string
+    better: 'high' | 'low' | null
+    format?: (v: number) => string
+  }
+
+  const rows: Row[] = [
     { label: '総合治安スコア',    key: 'safety_score',          unit: '点',       better: 'high' },
     { label: '犯罪発生率',        key: 'crime_per1000',         unit: '件/千人',  better: 'low'  },
     { label: '交通事故件数',      key: 'traffic',               unit: '件',       better: 'low'  },
@@ -90,9 +98,9 @@ export default function ComparePage() {
     { label: '子供の割合',        key: 'child_pct',             unit: '%',        better: 'high' },
     { label: '緑被率',            key: 'park_area_pct',         unit: '%',        better: 'high' },
     { label: '病院・診療所',      key: 'hospital',              unit: 'ヶ所',     better: 'high' },
-    { label: '1K 家賃相場',       key: 'rent_1k',               unit: '万円/月',  better: 'low', format: (v: number) => (v / 10000).toFixed(1) },
-    { label: '1LDK 家賃相場',     key: 'rent_1ldk',             unit: '万円/月',  better: 'low', format: (v: number) => (v / 10000).toFixed(1) },
-  ] as const
+    { label: '1K 家賃相場',       key: 'rent_1k',               unit: '万円/月',  better: 'low',  format: (v: number) => (v / 10000).toFixed(1) },
+    { label: '1LDK 家賃相場',     key: 'rent_1ldk',             unit: '万円/月',  better: 'low',  format: (v: number) => (v / 10000).toFixed(1) },
+  ]
 
   const bothSelected = slots[0].ward && slots[1].ward
 
