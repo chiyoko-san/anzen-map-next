@@ -10,11 +10,12 @@ type Props = { params: { slug: string } }
 export const revalidate = 60
 
 async function getColumn(slug: string): Promise<Column | null> {
+  const now = new Date().toISOString()
   const { data } = await supabase
     .from('columns')
     .select('*')
     .eq('slug', slug)
-    .eq('status', 'published')
+    .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
     .single()
   return data as Column | null
 }
@@ -22,19 +23,24 @@ async function getColumn(slug: string): Promise<Column | null> {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const col = await getColumn(params.slug)
   if (!col) return { title: '記事が見つかりません' }
-  
+
+  // サムネがあればそれを使い、なければデフォルトOGP画像を使う
   const ogImage = col.thumbnail || 'https://anzen-map.jp/og-default.png'
-  
+
   return {
     title: col.title,
     description: col.description,
     openGraph: {
       title: col.title,
       description: col.description,
-      images: [{ url: ogImage, width: 1200, height: 630 }],
+      type: 'article',
+      url: `https://anzen-map.jp/columns/${col.slug}`,
+      images: [{ url: ogImage, width: 1200, height: 630, alt: col.title }],
     },
     twitter: {
       card: 'summary_large_image',
+      title: col.title,
+      description: col.description,
       images: [ogImage],
     },
   }
@@ -88,7 +94,7 @@ export default async function ColumnDetailPage({ params }: Props) {
             />
           )}
 
-          {/* 本文 — prose クラスでHTMLを整形 */}
+          {/* 本文 */}
           <div className="prose prose-blue max-w-none" dangerouslySetInnerHTML={{ __html: col.content }} />
 
           {/* 記事内広告 */}

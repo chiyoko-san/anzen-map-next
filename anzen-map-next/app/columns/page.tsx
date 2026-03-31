@@ -12,10 +12,11 @@ export const metadata: Metadata = {
 export const revalidate = 60 // 1時間キャッシュ
 
 async function getColumns(): Promise<Column[]> {
+  const now = new Date().toISOString()
   const { data } = await supabase
     .from('columns')
-    .select('id,slug,title,description,thumbnail,tags,published_at')
-    .eq('status', 'published')
+    .select('id,slug,title,description,thumbnail,tags,status,published_at,scheduled_at')
+    .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
     .order('published_at', { ascending: false })
     .limit(20)
   return (data as Column[]) ?? []

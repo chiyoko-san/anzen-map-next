@@ -8,7 +8,7 @@ type Tab = 'contacts' | 'columns' | 'ads'
 const ADMIN_ID = process.env.NEXT_PUBLIC_ADMIN_ID       || 'admin'
 const ADMIN_PW = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'anzen-map-2024'
 
-const EMPTY_COL = { slug:'', title:'', description:'', content:'', tags:'', status:'draft' as 'draft'|'published', thumbnail:'' }
+const EMPTY_COL = { slug:'', title:'', description:'', content:'', tags:'', status:'draft' as 'draft'|'published'|'scheduled', thumbnail:'', scheduled_at:'' }
 
 export default function AdminPage() {
   const [authed,    setAuthed]    = useState(false)
@@ -78,6 +78,7 @@ export default function AdminPage() {
       content:     c.content,
       tags:        (c.tags ?? []).join(', '),
       status:      c.status,
+      scheduled_at: c.scheduled_at ?? '',
       thumbnail:   c.thumbnail ?? '',
     })
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -113,13 +114,14 @@ export default function AdminPage() {
     const tags = col.tags.split(',').map(t => t.trim()).filter(Boolean)
     // 編集時は published_at を上書きしない（新規公開時のみセット）
     const basePayload = {
-      slug:        col.slug,
-      title:       col.title,
-      description: col.description,
-      content:     col.content,
-      thumbnail:   col.thumbnail || null,
+      slug:         col.slug,
+      title:        col.title,
+      description:  col.description,
+      content:      col.content,
+      thumbnail:    col.thumbnail || null,
       tags,
-      status:      col.status,
+      status:       col.status,
+      scheduled_at: col.status === 'scheduled' && col.scheduled_at ? new Date(col.scheduled_at).toISOString() : null,
     }
 
     let error
@@ -306,9 +308,10 @@ export default function AdminPage() {
                     <div>
                       <label className="block text-xs text-gray-500 mb-1">ステータス</label>
                       <select className="input text-sm" value={col.status}
-                        onChange={e => setCol({...col, status: e.target.value as 'draft'|'published'})}>
+                        onChange={e => setCol({...col, status: e.target.value as 'draft'|'published'|'scheduled'})}>
                         <option value="draft">下書き</option>
-                        <option value="published">公開</option>
+                        <option value="published">即時公開</option>
+                        <option value="scheduled">⏰ 予約公開</option>
                       </select>
                     </div>
                   </div>
@@ -330,6 +333,25 @@ export default function AdminPage() {
                     <input className="input text-sm" placeholder="治安, 東京, 引越し"
                       value={col.tags} onChange={e => setCol({...col, tags: e.target.value})} />
                   </div>
+
+                  {/* 予約公開日時 */}
+                  {col.status === 'scheduled' && (
+                    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                      <label className="block text-xs font-medium text-amber-800 mb-2">
+                        ⏰ 公開予定日時（日本時間）
+                      </label>
+                      <input
+                        type="datetime-local"
+                        className="input text-sm"
+                        value={col.scheduled_at}
+                        min={new Date().toISOString().slice(0, 16)}
+                        onChange={e => setCol({...col, scheduled_at: e.target.value})}
+                      />
+                      <p className="text-xs text-amber-700 mt-1.5">
+                        指定した日時以降に誰かがアクセスしたタイミングで自動公開されます（最大60秒の誤差）
+                      </p>
+                    </div>
+                  )}
 
                   {/* サムネイル */}
                   <div>
@@ -389,8 +411,14 @@ export default function AdminPage() {
                     )}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <span className={`badge ${c.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                          {c.status === 'published' ? '公開中' : '下書き'}
+                        <span className={`badge ${
+                          c.status === 'published' ? 'bg-green-100 text-green-700' :
+                          c.status === 'scheduled' ? 'bg-amber-100 text-amber-700' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          {c.status === 'published' ? '公開中' :
+                           c.status === 'scheduled' ? `⏰ ${c.scheduled_at ? new Date(c.scheduled_at).toLocaleString('ja-JP', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}) + '公開予定' : '予約済み'}` :
+                           '下書き'}
                         </span>
                         {editingId === c.id && (
                           <span className="badge bg-amber-100 text-amber-700">編集中</span>
@@ -406,10 +434,10 @@ export default function AdminPage() {
                         ✏️ 編集
                       </button>
                       {/* 公開・下書き切替 */}
-                      {c.status === 'draft' ? (
+                      {c.status === 'draft' || c.status === 'scheduled' ? (
                         <button onClick={() => updateStatus(c.id, 'published')}
                           className="text-xs text-green-600 border border-green-200 px-2 py-1 rounded-lg hover:bg-green-50">
-                          公開する
+                          即時公開
                         </button>
                       ) : (
                         <button onClick={() => updateStatus(c.id, 'draft')}

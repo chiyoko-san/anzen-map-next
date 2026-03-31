@@ -12,9 +12,6 @@ export const metadata: Metadata = {
   description:
     '引越し前に確認すべき治安・犯罪率・家賃・火災・街灯データを警視庁・各都道府県警察・総務省の公式統計からまとめています。東京・大阪・名古屋・福岡・札幌対応。',
   keywords: ['治安', '引越し', '犯罪率', '家賃相場', '地域安全', '東京23区'],
-  // Search Console の「HTMLタグ」に表示された content の値に置き換えてください
-  // 例: <meta name="google-site-verification" content="AbCdEfGhIj123456" />
-  //      → 'AbCdEfGhIj123456' の部分だけ貼り付けます
   verification: {
     google: 'ここにSearch Consoleのcontent値を貼り付け',
   },
@@ -28,8 +25,8 @@ export const metadata: Metadata = {
         url: 'https://anzen-map.jp/og-default.png',
         width: 1200,
         height: 630,
-        alt: '地域安全マップ｜引越し前に治安・家賃を確認',
-      }
+        alt: '地域安全マップ｜引越し前に治安・家賃・犯罪率を確認',
+      },
     ],
   },
   twitter: {

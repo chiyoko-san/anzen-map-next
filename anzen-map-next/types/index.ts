@@ -16,9 +16,10 @@ export type Column = {
   content: string
   thumbnail: string | null
   tags: string[]
-  status: 'draft' | 'published'
+  status: 'draft' | 'published' | 'scheduled'
   published_at: string | null
   created_at: string
+  scheduled_at: string | null
   updated_at: string
 }
 
