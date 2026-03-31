@@ -105,14 +105,14 @@ export default async function ColumnsPage() {
             {popular.length === 0 ? (
               <p className="text-xs text-gray-400">準備中</p>
             ) : (
-              <div className="space-y-4">
+              <div className="flex flex-col gap-4">
                 {popular.map((col, i) => (
                   <Link key={col.id} href={`/columns/${col.slug}`}>
-                    <div className="flex gap-3 items-start group">
+                    <div className="flex gap-3 items-start group p-3 rounded-xl hover:bg-gray-50 transition border border-transparent hover:border-gray-200">
                       {/* 順位バッジ */}
-                      <span className={`flex-shrink-0 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${
+                      <span className={`flex-shrink-0 w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${
                         i === 0 ? 'bg-yellow-100 text-yellow-700' :
-                        i === 1 ? 'bg-gray-100 text-gray-600' :
+                        i === 1 ? 'bg-gray-100 text-gray-500' :
                         'bg-orange-50 text-orange-600'
                       }`}>
                         {i + 1}
@@ -122,17 +122,24 @@ export default async function ColumnsPage() {
                         <img
                           src={col.thumbnail}
                           alt={col.title}
-                          className="w-14 h-12 object-cover rounded-lg flex-shrink-0"
+                          className="w-16 h-14 object-cover rounded-lg flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-14 h-12 bg-blue-50 rounded-lg flex-shrink-0 flex items-center justify-center text-lg">
+                        <div className="w-16 h-14 bg-blue-50 rounded-lg flex-shrink-0 flex items-center justify-center text-xl">
                           🏙
                         </div>
                       )}
-                      {/* タイトル */}
-                      <p className="text-xs text-gray-700 leading-snug line-clamp-3 group-hover:text-blue-600 transition">
-                        {col.title}
-                      </p>
+                      {/* タイトル＋日付 */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-gray-700 leading-snug line-clamp-3 group-hover:text-blue-600 transition mb-1">
+                          {col.title}
+                        </p>
+                        {col.published_at && (
+                          <p className="text-xs text-gray-400">
+                            {new Date(col.published_at).toLocaleDateString('ja-JP')}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 ))}

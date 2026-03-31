@@ -24,6 +24,9 @@ export default function Header() {
           {[
             { href: '/', label: 'ダッシュボード' },
             { href: '/columns', label: 'コラム' },
+            { href: '/tools/compare', label: 'エリア比較' },
+            { href: '/tools/rent-simulator', label: '家賃シミュ' },
+            { href: '/tools/checklist', label: 'チェックリスト' },
             { href: '/contact', label: 'お問い合わせ' },
           ].map(({ href, label }) => (
             <Link
@@ -62,6 +65,9 @@ export default function Header() {
           {[
             { href: '/', label: 'ダッシュボード' },
             { href: '/columns', label: 'コラム' },
+            { href: '/tools/compare', label: '⚖️ エリア比較' },
+            { href: '/tools/rent-simulator', label: '💰 家賃シミュ' },
+            { href: '/tools/checklist', label: '✅ チェックリスト' },
             { href: '/contact', label: 'お問い合わせ' },
           ].map(({ href, label }) => (
             <Link
