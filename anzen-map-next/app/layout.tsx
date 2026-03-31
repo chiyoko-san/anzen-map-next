@@ -23,10 +23,19 @@ export const metadata: Metadata = {
     locale: 'ja_JP',
     type: 'website',
     url: 'https://anzen-map.jp',
+    images: [
+      {
+        url: 'https://anzen-map.jp/og-default.png',
+        width: 1200,
+        height: 630,
+        alt: '地域安全マップ｜引越し前に治安・家賃を確認',
+      }
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     site: '@anzen_map_jp',
+    images: ['https://anzen-map.jp/og-default.png'],
   },
   metadataBase: new URL('https://anzen-map.jp'),
 }
